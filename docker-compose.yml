@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  ssh-honeypot:
+    build:
+      context: .
+      dockerfile: docker/ssh-honeypot.Dockerfile
+    ports:
+      - "2222:2222"
+    networks:
+      - honeypot-net
+    depends_on:
+      - mongodb
+
+  web-api:
+    build:
+      context: .
+      dockerfile: docker/web-api.Dockerfile
+    ports:
+      - "8000:8000"
+    networks:
+      - honeypot-net
+    depends_on:
+      - mongodb
+
+  mongodb:
+    image: mongo:5.0
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - honeypot-net
+    environment:
+      MONGO_INITDB_DATABASE: honeypot
+    ports:
+      - "27017:27017"
+
+  nginx:
+    image: nginx:alpine
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - web-api
+    networks:
+      - honeypot-net
+
+networks:
+  honeypot-net:
+    driver: bridge
+
+volumes:
+  mongodb_data:

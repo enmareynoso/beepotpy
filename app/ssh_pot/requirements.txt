@@ -1,0 +1,4 @@
+paramiko
+pymongo
+faker
+python-dotenv
